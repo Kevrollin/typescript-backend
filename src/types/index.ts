@@ -40,13 +40,12 @@ export interface Project {
   id: number;
   title: string;
   description: string;
-  targetAmount: number;
+  goalAmount: number;
   currentAmount: number;
   status: ProjectStatus;
   category: ProjectCategory;
   creatorId: number;
-  featuredImage?: string;
-  images?: string[];
+  imageUrl?: string;
   deadline?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -123,9 +122,9 @@ export enum UserStatus {
 }
 
 export enum VerificationStatus {
-  PENDING = 'pending',
-  VERIFIED = 'verified',
-  REJECTED = 'rejected'
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
 }
 
 export enum ProjectStatus {
@@ -138,10 +137,9 @@ export enum ProjectStatus {
 
 export enum ProjectCategory {
   EDUCATION = 'EDUCATION',
-  HEALTHCARE = 'HEALTHCARE',
+  HEALTH = 'HEALTH',
   TECHNOLOGY = 'TECHNOLOGY',
   ARTS = 'ARTS',
-  SPORTS = 'SPORTS',
   ENVIRONMENT = 'ENVIRONMENT',
   SOCIAL = 'SOCIAL',
   OTHER = 'OTHER'

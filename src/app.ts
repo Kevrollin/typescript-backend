@@ -9,6 +9,10 @@ import swaggerUi from 'swagger-ui-express';
 import config from './config';
 import { testConnection } from './config/database';
 import authRoutes from './routes/auth';
+import projectRoutes from './routes/projects';
+import donationRoutes from './routes/donations';
+import adminRoutes from './routes/admin';
+import studentRoutes from './routes/students';
 import { ApiError } from './types';
 
 // Import models to initialize associations
@@ -131,6 +135,10 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/students', studentRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

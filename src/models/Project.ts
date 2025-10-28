@@ -6,13 +6,12 @@ export class Project extends Model {
   declare id: CreationOptional<number>;
   declare title: string;
   declare description: string;
-  declare targetAmount: number;
+  declare goalAmount: number;
   declare currentAmount: CreationOptional<number>;
   declare status: ProjectStatus;
   declare category: ProjectCategory;
   declare creatorId: number;
-  declare featuredImage: CreationOptional<string>;
-  declare images: CreationOptional<string[]>;
+  declare imageUrl: CreationOptional<string>;
   declare deadline: CreationOptional<Date>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -33,10 +32,10 @@ Project.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    targetAmount: {
+    goalAmount: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
-      field: 'target_amount',
+      field: 'goal_amount',
     },
     currentAmount: {
       type: DataTypes.DECIMAL(15, 2),
@@ -57,14 +56,10 @@ Project.init(
       allowNull: false,
       field: 'creator_id',
     },
-    featuredImage: {
+    imageUrl: {
       type: DataTypes.STRING(500),
       allowNull: true,
-      field: 'featured_image',
-    },
-    images: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: true,
+      field: 'image_url',
     },
     deadline: {
       type: DataTypes.DATE,

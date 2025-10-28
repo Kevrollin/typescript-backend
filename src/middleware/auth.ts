@@ -72,7 +72,7 @@ export const requireVerifiedStudent = async (
     }
 
     const student = await Student.findOne({
-      where: { userId: (req as any).user.id, verificationStatus: VerificationStatus.VERIFIED }
+      where: { userId: (req as any).user.id, verificationStatus: VerificationStatus.APPROVED }
     });
 
     if (!student) {

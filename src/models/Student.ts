@@ -12,6 +12,7 @@ export class Student extends Model {
   declare estimatedGraduationYear: CreationOptional<number>;
   declare verificationStatus: VerificationStatus;
   declare verificationNotes: CreationOptional<string>;
+  declare verificationReason: CreationOptional<string>;
   declare verifiedAt: CreationOptional<Date>;
   declare verifiedBy: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
@@ -65,6 +66,11 @@ Student.init(
       type: DataTypes.TEXT,
       allowNull: true,
       field: 'verification_notes',
+    },
+    verificationReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'verification_reason',
     },
     verifiedAt: {
       type: DataTypes.DATE,
