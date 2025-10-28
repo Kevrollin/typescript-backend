@@ -127,6 +127,16 @@ export enum VerificationStatus {
   REJECTED = 'REJECTED'
 }
 
+export enum SubmissionStatus {
+  NOT_SUBMITTED = 'not_submitted',
+  SUBMITTED = 'submitted',
+  UNDER_REVIEW = 'under_review',
+  GRADED = 'graded',
+  WINNER = 'winner',
+  RUNNER_UP = 'runner_up',
+  NOT_SELECTED = 'not_selected'
+}
+
 export enum ProjectStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
@@ -159,10 +169,10 @@ export enum PaymentMethod {
 }
 
 export enum CampaignStatus {
-  DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
 }
 
 export enum StellarNetwork {

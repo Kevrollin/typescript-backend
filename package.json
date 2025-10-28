@@ -17,7 +17,8 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
     "migrate": "ts-node src/scripts/migrate.ts",
-    "seed": "ts-node src/scripts/seed.ts"
+    "seed": "ts-node src/scripts/seed.ts",
+    "create-admin": "ts-node src/scripts/createAdmin.ts"
   },
   "keywords": [
     "typescript",

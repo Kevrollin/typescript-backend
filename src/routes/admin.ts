@@ -22,8 +22,24 @@ const verifyStudentValidation = [
 
 // Routes
 router.get('/verifications', verifyToken, AdminController.getPendingVerifications);
+router.get('/verifications/all', verifyToken, AdminController.getAllStudentVerifications);
 router.post('/verify-student', verifyToken, verifyStudentValidation, AdminController.verifyStudent);
 router.get('/stats', verifyToken, AdminController.getAnalytics);
+router.get('/dashboard-stats', verifyToken, AdminController.getDashboardStats);
 router.get('/users', verifyToken, AdminController.getUsers);
+router.get('/users/:id', verifyToken, AdminController.getUserById);
+router.put('/users/:id', verifyToken, AdminController.updateUser);
+router.put('/users/:id/status', verifyToken, AdminController.updateUserStatus);
+router.get('/projects', verifyToken, AdminController.getAllProjects);
+router.put('/projects/:id/status', verifyToken, AdminController.updateProjectStatus);
+router.delete('/projects/:id', verifyToken, AdminController.deleteProject);
+
+// Campaign participants routes (Admin only)
+router.get('/campaigns/:id/participants', verifyToken, AdminController.getCampaignParticipants);
+router.get('/campaigns/active/participants', verifyToken, AdminController.getActiveCampaignsParticipants);
+
+// Campaign dates management routes (Admin only)
+router.get('/campaigns/:id/dates', verifyToken, AdminController.getCampaignDates);
+router.put('/campaigns/:id/dates', verifyToken, AdminController.updateCampaignDates);
 
 export default router;

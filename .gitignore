@@ -121,4 +121,8 @@ temp/
 # SvelteKit build / generate output
 .svelte-kit
 
+# Admin creation scripts (security - contains default credentials)
+src/scripts/createAdmin.ts
+src/scripts/seed.ts
+
 # End of https://www.gitignore.io/api/node

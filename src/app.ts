@@ -13,6 +13,8 @@ import projectRoutes from './routes/projects';
 import donationRoutes from './routes/donations';
 import adminRoutes from './routes/admin';
 import studentRoutes from './routes/students';
+import campaignRoutes from './routes/campaigns';
+import submissionRoutes from './routes/submissions';
 import { ApiError } from './types';
 
 // Import models to initialize associations
@@ -137,6 +139,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/donations', donationRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/students', studentRoutes);
 
