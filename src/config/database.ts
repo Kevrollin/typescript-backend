@@ -1,21 +1,52 @@
 import { Sequelize } from 'sequelize';
+import pg from 'pg';
 import config from './index';
 
-// Create Sequelize instance
+// Create Sequelize instance with Vercel-optimized configuration
 const sequelize = new Sequelize(config.database.url, {
   logging: config.database.logging ? console.log : false,
-  pool: config.database.pool,
+  pool: {
+    min: 0, // Minimum connections for serverless
+    max: 1, // Maximum connections for serverless
+    acquire: 30000,
+    idle: 10000,
+  },
   dialect: 'postgres',
+  dialectModule: pg, // Explicitly specify pg module
   dialectOptions: {
     ssl: config.app.env === 'production' ? {
       require: true,
       rejectUnauthorized: false
-    } : false
+    } : false,
+    // Vercel-specific options
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 0,
   },
   define: {
     timestamps: true,
     underscored: true,
     freezeTableName: true,
+  },
+  // Vercel serverless optimization
+  retry: {
+    match: [
+      /ETIMEDOUT/,
+      /EHOSTUNREACH/,
+      /ECONNRESET/,
+      /ECONNREFUSED/,
+      /ETIMEDOUT/,
+      /ESOCKETTIMEDOUT/,
+      /EHOSTUNREACH/,
+      /EPIPE/,
+      /EAI_AGAIN/,
+      /SequelizeConnectionError/,
+      /SequelizeConnectionRefusedError/,
+      /SequelizeHostNotFoundError/,
+      /SequelizeHostNotReachableError/,
+      /SequelizeInvalidConnectionError/,
+      /SequelizeConnectionTimedOutError/
+    ],
+    max: 3
   },
 });
 
