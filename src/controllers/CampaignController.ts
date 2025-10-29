@@ -22,13 +22,18 @@ export class CampaignController {
    *         schema:
    *           type: string
    *         description: Filter by campaign status
+   *       - in: query
+   *         name: includeExpired
+   *         schema:
+   *           type: string
+   *         description: Include expired campaigns (set to 'true' to include)
    *     responses:
    *       200:
    *         description: List of campaigns
    */
   static async getCampaigns(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { search, status } = req.query;
+      const { search, status, includeExpired } = req.query;
       
       const where: any = {};
       const order: any = [['createdAt', 'DESC']];
@@ -43,6 +48,13 @@ export class CampaignController {
 
       if (status) {
         where.status = status;
+      }
+
+      // Filter out expired campaigns unless explicitly requested
+      if (includeExpired !== 'true') {
+        where.endDate = {
+          [Op.gte]: new Date() // Only show campaigns that haven't ended yet
+        };
       }
 
       const campaigns = await Campaign.findAll({

@@ -21,14 +21,29 @@ const createProjectValidation = [
   body('category')
     .isIn(['EDUCATION', 'TECHNOLOGY', 'HEALTH', 'ENVIRONMENT', 'SOCIAL', 'ARTS', 'OTHER'])
     .withMessage('Invalid category'),
-  body('deadline')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid deadline format'),
   body('imageUrl')
     .optional()
     .isURL()
     .withMessage('Invalid image URL'),
+  body('bannerImage')
+    .optional()
+    .isURL()
+    .withMessage('Invalid banner image URL'),
+  body('screenshots')
+    .optional()
+    .isArray()
+    .withMessage('Screenshots must be an array'),
+  body('screenshots.*')
+    .optional()
+    .isURL()
+    .withMessage('Each screenshot must be a valid URL'),
+  // Optional project links (both camelCase and snake_case accepted)
+  body('repoUrl').optional().isURL().withMessage('Invalid repo URL'),
+  body('demoUrl').optional().isURL().withMessage('Invalid demo URL'),
+  body('websiteUrl').optional().isURL().withMessage('Invalid website URL'),
+  body('repo_url').optional().isURL().withMessage('Invalid repo URL'),
+  body('demo_url').optional().isURL().withMessage('Invalid demo URL'),
+  body('website_url').optional().isURL().withMessage('Invalid website URL'),
 ];
 
 const updateProjectValidation = [
@@ -50,14 +65,29 @@ const updateProjectValidation = [
     .optional()
     .isIn(['EDUCATION', 'TECHNOLOGY', 'HEALTH', 'ENVIRONMENT', 'SOCIAL', 'ARTS', 'OTHER'])
     .withMessage('Invalid category'),
-  body('deadline')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid deadline format'),
   body('imageUrl')
     .optional()
     .isURL()
     .withMessage('Invalid image URL'),
+  body('bannerImage')
+    .optional()
+    .isURL()
+    .withMessage('Invalid banner image URL'),
+  body('screenshots')
+    .optional()
+    .isArray()
+    .withMessage('Screenshots must be an array'),
+  body('screenshots.*')
+    .optional()
+    .isURL()
+    .withMessage('Each screenshot must be a valid URL'),
+  // Optional project links (both camelCase and snake_case accepted)
+  body('repoUrl').optional().isURL().withMessage('Invalid repo URL'),
+  body('demoUrl').optional().isURL().withMessage('Invalid demo URL'),
+  body('websiteUrl').optional().isURL().withMessage('Invalid website URL'),
+  body('repo_url').optional().isURL().withMessage('Invalid repo URL'),
+  body('demo_url').optional().isURL().withMessage('Invalid demo URL'),
+  body('website_url').optional().isURL().withMessage('Invalid website URL'),
 ];
 
 // Routes
@@ -66,5 +96,14 @@ router.get('/:id', ProjectController.getProject);
 router.post('/', verifyToken, createProjectValidation, ProjectController.createProject);
 router.put('/:id', verifyToken, updateProjectValidation, ProjectController.updateProject);
 router.delete('/:id', verifyToken, ProjectController.deleteProject);
+
+// Like/Share/View routes
+router.post('/:id/like', verifyToken, ProjectController.toggleLike);
+router.get('/:id/like-status', ProjectController.getLikeStatus);
+router.post('/:id/share', ProjectController.trackShare);
+router.post('/:id/view', ProjectController.trackView);
+
+// Analytics route
+router.get('/:id/analytics', verifyToken, ProjectController.getProjectAnalytics);
 
 export default router;

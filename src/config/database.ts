@@ -14,7 +14,7 @@ const sequelize = new Sequelize(config.database.url, {
   dialect: 'postgres',
   dialectModule: pg, // Explicitly specify pg module
   dialectOptions: {
-    ssl: config.app.env === 'production' ? {
+    ssl: config.database.url.includes('neon.tech') || config.app.env === 'production' ? {
       require: true,
       rejectUnauthorized: false
     } : false,

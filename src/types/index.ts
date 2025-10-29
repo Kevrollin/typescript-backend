@@ -305,6 +305,13 @@ export interface StripeConfig {
   webhookSecret: string;
 }
 
+// Supabase configuration
+export interface SupabaseConfig {
+  url: string;
+  anonKey: string;
+  serviceRoleKey: string;
+}
+
 // Redis configuration
 export interface RedisConfig {
   url: string;
@@ -320,6 +327,7 @@ export interface Config {
   rateLimit: RateLimitConfig;
   stellar: StellarConfig;
   stripe: StripeConfig;
+  supabase: SupabaseConfig;
 }
 
 // API Response types

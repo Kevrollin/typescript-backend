@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { Op } from 'sequelize';
-import { Project, User } from '../models';
+import { Project, ProjectLike, ProjectShare, User, Donation } from '../models';
 import { ProjectStatus, ProjectCategory } from '../types';
 
 export class ProjectController {
@@ -80,7 +80,14 @@ export class ProjectController {
           {
             model: User,
             as: 'creator',
-            attributes: ['id', 'username', 'fullName', 'email']
+            attributes: ['id', 'username', 'fullName', 'email'],
+            include: [
+              {
+                model: User.sequelize!.models.Student,
+                as: 'studentProfile',
+                attributes: ['twitterUrl', 'linkedinUrl', 'githubUrl']
+              }
+            ]
           }
         ],
         limit: 50
@@ -123,7 +130,14 @@ export class ProjectController {
           {
             model: User,
             as: 'creator',
-            attributes: ['id', 'username', 'fullName', 'email']
+            attributes: ['id', 'username', 'fullName', 'email'],
+            include: [
+              {
+                model: User.sequelize!.models.Student,
+                as: 'studentProfile',
+                attributes: ['twitterUrl', 'linkedinUrl', 'githubUrl']
+              }
+            ]
           }
         ]
       });
@@ -197,8 +211,9 @@ export class ProjectController {
         description,
         goalAmount,
         category,
-        deadline,
-        imageUrl
+        imageUrl,
+        bannerImage,
+        screenshots
       } = req.body;
 
       const project = await Project.create({
@@ -206,8 +221,9 @@ export class ProjectController {
         description,
         goalAmount,
         category: category as ProjectCategory,
-        deadline: deadline ? new Date(deadline) : null,
         imageUrl,
+        bannerImage: bannerImage || imageUrl, // Use bannerImage if provided, fallback to imageUrl
+        screenshots: Array.isArray(screenshots) ? screenshots : [],
         creatorId: (req as any).user.id,
         status: ProjectStatus.ACTIVE,
         currentAmount: 0
@@ -357,6 +373,425 @@ export class ProjectController {
       res.json({
         success: true,
         message: 'Project deleted successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/projects/{id}/like:
+   *   post:
+   *     summary: Like or unlike a project
+   *     tags: [Projects]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Project ID
+   *     responses:
+   *       200:
+   *         description: Like status updated successfully
+   *       404:
+   *         description: Project not found
+   *       401:
+   *         description: User not authenticated
+   */
+  static async toggleLike(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const project = await Project.findByPk(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+        return;
+      }
+
+      // Check if user already liked this project
+      const existingLike = await ProjectLike.findOne({
+        where: {
+          projectId: id,
+          userId: userId
+        }
+      });
+
+      if (existingLike) {
+        // Unlike: Remove the like and decrement count
+        await existingLike.destroy();
+        await project.decrement('likesCount');
+        
+        // Reload the project to get the updated likes count
+        await project.reload();
+        
+        res.json({
+          success: true,
+          message: 'Project unliked successfully',
+          liked: false,
+          likesCount: project.likesCount
+        });
+      } else {
+        // Like: Add the like and increment count
+        await ProjectLike.create({
+          projectId: id,
+          userId: userId
+        });
+        await project.increment('likesCount');
+        
+        // Reload the project to get the updated likes count
+        await project.reload();
+        
+        res.json({
+          success: true,
+          message: 'Project liked successfully',
+          liked: true,
+          likesCount: project.likesCount
+        });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/projects/{id}/like-status:
+   *   get:
+   *     summary: Get like status for a project
+   *     tags: [Projects]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Project ID
+   *     responses:
+   *       200:
+   *         description: Like status retrieved successfully
+   *       404:
+   *         description: Project not found
+   */
+  static async getLikeStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      const project = await Project.findByPk(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+        return;
+      }
+
+      let liked = false;
+      if (userId) {
+        const existingLike = await ProjectLike.findOne({
+          where: {
+            projectId: id,
+            userId: userId
+          }
+        });
+        liked = !!existingLike;
+      }
+
+      res.json({
+        success: true,
+        liked,
+        likesCount: project.likesCount
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/projects/{id}/share:
+   *   post:
+   *     summary: Track a project share
+   *     tags: [Projects]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Project ID
+   *     responses:
+   *       200:
+   *         description: Share tracked successfully
+   *       404:
+   *         description: Project not found
+   */
+  static async trackShare(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+      const { platform = 'direct' } = req.body;
+
+      const project = await Project.findByPk(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+        return;
+      }
+
+      // Increment shares count
+      await project.increment('sharesCount');
+      
+      // Create a ProjectShare record if user is authenticated
+      if (userId) {
+        try {
+          await ProjectShare.create({
+            projectId: parseInt(id),
+            userId: userId,
+            platform: platform
+          });
+        } catch (error: any) {
+          // If record already exists (e.g., user shared multiple times), just update the count
+          // The increment above already handles the count
+          console.warn('Failed to create share record (may already exist):', error.message);
+        }
+      }
+      
+      // Reload the project to get the updated shares count
+      await project.reload();
+
+      res.json({
+        success: true,
+        message: 'Share tracked successfully',
+        sharesCount: project.sharesCount
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/projects/{id}/view:
+   *   post:
+   *     summary: Track a project view
+   *     tags: [Projects]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Project ID
+   *     responses:
+   *       200:
+   *         description: View tracked successfully
+   *       404:
+   *         description: Project not found
+   */
+  static async trackView(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const project = await Project.findByPk(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+        return;
+      }
+
+      // Increment views count
+      await project.increment('viewsCount');
+      
+      // Reload the project to get the updated views count
+      await project.reload();
+
+      res.json({
+        success: true,
+        message: 'View tracked successfully',
+        viewsCount: project.viewsCount
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/projects/{id}/analytics:
+   *   get:
+   *     summary: Get project analytics including likes, shares, and views
+   *     tags: [Projects]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Project ID
+   *     responses:
+   *       200:
+   *         description: Project analytics
+   *       403:
+   *         description: Forbidden - user is not the project owner
+   *       404:
+   *         description: Project not found
+   */
+  static async getProjectAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      const project = await Project.findByPk(id, {
+        include: [
+          {
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'username', 'fullName', 'email']
+          }
+        ]
+      });
+
+      if (!project) {
+        res.status(404).json({ message: 'Project not found' });
+        return;
+      }
+
+      // Check if user is the creator
+      if (project.creatorId !== userId) {
+        res.status(403).json({ message: 'Access denied. You can only view analytics for your own projects.' });
+        return;
+      }
+
+      // Get users who liked the project
+      const likes = await ProjectLike.findAll({
+        where: { projectId: id },
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'email', 'profilePicture']
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      // Get users who shared the project
+      const shares = await ProjectShare.findAll({
+        where: { projectId: id },
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'email', 'profilePicture']
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      // Get donation statistics
+      const donations = await Donation.findAll({
+        where: { 
+          projectId: id,
+          status: 'COMPLETED'
+        },
+        include: [
+          {
+            model: User,
+            as: 'donor',
+            attributes: ['id', 'username', 'fullName', 'email']
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      const totalDonations = donations.length;
+      const totalDonated = donations.reduce((sum, d) => sum + parseFloat(d.amount as any), 0);
+      const anonymousDonations = donations.filter(d => d.anonymous).length;
+
+      res.json({
+        success: true,
+        data: {
+          project: {
+            id: project.id,
+            title: project.title,
+            status: project.status,
+            viewsCount: project.viewsCount,
+            likesCount: project.likesCount,
+            sharesCount: project.sharesCount,
+            goalAmount: project.goalAmount,
+            currentAmount: project.currentAmount
+          },
+          engagement: {
+            likes: {
+              count: likes.length,
+              users: likes.map((like: any) => ({
+                user: like.user,
+                likedAt: like.createdAt
+              }))
+            },
+            shares: {
+              count: shares.length,
+              byPlatform: shares.reduce((acc: any, share: any) => {
+                const platform = share.platform;
+                if (!acc[platform]) acc[platform] = [];
+                acc[platform].push({
+                  user: share.user,
+                  sharedAt: share.createdAt
+                });
+                return acc;
+              }, {}),
+              all: shares.map((share: any) => ({
+                user: share.user,
+                platform: share.platform,
+                sharedAt: share.createdAt
+              }))
+            },
+            donations: {
+              totalCount: totalDonations,
+              totalAmount: totalDonated,
+              anonymousCount: anonymousDonations,
+              publicCount: totalDonations - anonymousDonations,
+              recent: donations.slice(0, 10).map((d: any) => ({
+                donor: d.anonymous ? null : d.donor,
+                amount: d.amount,
+                message: d.message,
+                isAnonymous: d.anonymous,
+                donatedAt: d.createdAt
+              }))
+            }
+          },
+          performance: {
+            totalViews: project.viewsCount || 0,
+            totalLikes: project.likesCount || 0,
+            totalShares: project.sharesCount || 0,
+            totalDonations: totalDonations,
+            totalRaised: totalDonated,
+            fundingProgress: (project.currentAmount / project.goalAmount) * 100
+          }
+        }
       });
     } catch (error) {
       next(error);

@@ -15,6 +15,7 @@ import adminRoutes from './routes/admin';
 import studentRoutes from './routes/students';
 import campaignRoutes from './routes/campaigns';
 import submissionRoutes from './routes/submissions';
+import uploadRoutes from './routes/upload';
 import { ApiError } from './types';
 
 // Import models to initialize associations
@@ -143,10 +144,20 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
   console.error('Error:', err);
+  
+  // Handle multer errors
+  if ((err as any).code === 'LIMIT_FILE_SIZE') {
+    res.status(400).json({
+      success: false,
+      message: 'File size too large. Maximum size is 5MB.'
+    });
+    return;
+  }
   
   const statusCode = (err as ApiError).statusCode || 500;
   const message = err.message || 'Internal server error';

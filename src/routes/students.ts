@@ -30,6 +30,18 @@ const updateStudentProfileValidation = [
     .optional()
     .isInt({ min: 2020, max: 2030 })
     .withMessage('Invalid graduation year'),
+  body('twitterUrl')
+    .optional()
+    .isURL()
+    .withMessage('Invalid Twitter/X URL'),
+  body('linkedinUrl')
+    .optional()
+    .isURL()
+    .withMessage('Invalid LinkedIn URL'),
+  body('githubUrl')
+    .optional()
+    .isURL()
+    .withMessage('Invalid GitHub URL'),
 ];
 
 // Routes

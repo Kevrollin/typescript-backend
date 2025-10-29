@@ -1,6 +1,8 @@
 import { User } from './User';
 import { Student } from './Student';
 import { Project } from './Project';
+import { ProjectLike } from './ProjectLike';
+import { ProjectShare } from './ProjectShare';
 import { Donation } from './Donation';
 import { Campaign } from './Campaign';
 import { CampaignParticipation } from './CampaignParticipation';
@@ -44,6 +46,48 @@ Project.hasMany(Donation, {
 });
 
 Donation.belongsTo(Project, {
+  foreignKey: 'projectId',
+  as: 'project',
+});
+
+// Project Like associations
+User.hasMany(ProjectLike, {
+  foreignKey: 'userId',
+  as: 'projectLikes',
+});
+
+ProjectLike.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
+Project.hasMany(ProjectLike, {
+  foreignKey: 'projectId',
+  as: 'likes',
+});
+
+ProjectLike.belongsTo(Project, {
+  foreignKey: 'projectId',
+  as: 'project',
+});
+
+// Project Share associations
+User.hasMany(ProjectShare, {
+  foreignKey: 'userId',
+  as: 'projectShares',
+});
+
+ProjectShare.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
+Project.hasMany(ProjectShare, {
+  foreignKey: 'projectId',
+  as: 'shares',
+});
+
+ProjectShare.belongsTo(Project, {
   foreignKey: 'projectId',
   as: 'project',
 });
@@ -158,6 +202,8 @@ export {
   User,
   Student,
   Project,
+  ProjectLike,
+  ProjectShare,
   Donation,
   Campaign,
   CampaignParticipation,

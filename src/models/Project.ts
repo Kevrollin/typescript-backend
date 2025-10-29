@@ -12,7 +12,15 @@ export class Project extends Model {
   declare category: ProjectCategory;
   declare creatorId: number;
   declare imageUrl: CreationOptional<string>;
+  declare bannerImage: CreationOptional<string>;
+  declare screenshots: CreationOptional<string[]>;
+  declare repoUrl: CreationOptional<string>;
+  declare demoUrl: CreationOptional<string>;
+  declare websiteUrl: CreationOptional<string>;
   declare deadline: CreationOptional<Date>;
+  declare likesCount: CreationOptional<number>;
+  declare sharesCount: CreationOptional<number>;
+  declare viewsCount: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -61,9 +69,52 @@ Project.init(
       allowNull: true,
       field: 'image_url',
     },
+    bannerImage: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'banner_image',
+    },
+    screenshots: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+    },
+    repoUrl: {
+      type: DataTypes.STRING(1000),
+      allowNull: true,
+      field: 'repo_url',
+    },
+    demoUrl: {
+      type: DataTypes.STRING(1000),
+      allowNull: true,
+      field: 'demo_url',
+    },
+    websiteUrl: {
+      type: DataTypes.STRING(1000),
+      allowNull: true,
+      field: 'website_url',
+    },
     deadline: {
       type: DataTypes.DATE,
       allowNull: true,
+    },
+    likesCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false,
+      field: 'likes_count',
+    },
+    sharesCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false,
+      field: 'shares_count',
+    },
+    viewsCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false,
+      field: 'views_count',
     },
   },
   {

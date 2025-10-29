@@ -15,6 +15,9 @@ export class Student extends Model {
   declare verificationReason: CreationOptional<string>;
   declare verifiedAt: CreationOptional<Date>;
   declare verifiedBy: CreationOptional<number>;
+  declare twitterUrl: CreationOptional<string>;
+  declare linkedinUrl: CreationOptional<string>;
+  declare githubUrl: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -81,6 +84,21 @@ Student.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       field: 'verified_by',
+    },
+    twitterUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'twitter_url',
+    },
+    linkedinUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'linkedin_url',
+    },
+    githubUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'github_url',
     },
   },
   {

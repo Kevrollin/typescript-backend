@@ -160,10 +160,11 @@ export class StudentController {
       const { status } = req.query;
 
       const where: any = { creatorId: userId };
-      if (status) {
-        where.status = status;
+      if (status && typeof status === 'string') {
+        where.status = status.toUpperCase();
       }
 
+      // Fetch projects with all fields including engagement metrics
       const projects = await Project.findAll({
         where,
         order: [['createdAt', 'DESC']],
@@ -173,6 +174,13 @@ export class StudentController {
             as: 'creator',
             attributes: ['id', 'username', 'fullName', 'email']
           }
+        ],
+        // Explicitly include all project fields
+        attributes: [
+          'id', 'title', 'description', 'goalAmount', 'currentAmount', 
+          'status', 'category', 'creatorId', 'imageUrl', 'bannerImage',
+          'screenshots', 'deadline', 'likesCount', 'sharesCount', 
+          'viewsCount', 'createdAt', 'updatedAt'
         ]
       });
 
