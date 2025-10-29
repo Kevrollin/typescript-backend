@@ -1,33 +1,47 @@
 // Vercel serverless function entry point for TypeScript backend
-import type { Request, Response } from 'express';
-import app from '../src/app';
 
-// Handle serverless function lifecycle
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import app from '../src/app';
+import serverless from 'serverless-http';
+
+const handler = serverless(app);
+
+// Lazy DB warm-up flag
 let isWarm = false;
 
-export default async (req: Request, res: Response) => {
-  // Warm up database connection on first request
+export default async function (req: VercelRequest, res: VercelResponse) {
+  // Warm up the DB once per cold start
   if (!isWarm) {
     try {
       const { testConnection } = await import('../src/config/database');
       await testConnection();
       isWarm = true;
-      console.log('Database connection warmed up');
+      console.log('✅ Database connection warmed up');
     } catch (error) {
-      console.error('Failed to warm up database connection:', error);
+      console.error('❌ Failed to warm up DB:', error);
     }
   }
 
-  // ✅ Send proper CORS headers in all responses
-  res.setHeader('Access-Control-Allow-Origin', 'https://fundhubui-v1.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Global CORS handling (important for OPTIONS preflight)
+  res.setHeader(
+    'Access-Control-Allow-Origin',
+    'https://fundhubui-v1.vercel.app'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET,POST,PUT,DELETE,PATCH,OPTIONS'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Requested-With'
+  );
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // If it's a preflight request, end it here
+  // Handle OPTIONS request right away
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  return app(req, res);
-};
+  // Delegate everything else to Express via serverless-http
+  return handler(req, res);
+}
