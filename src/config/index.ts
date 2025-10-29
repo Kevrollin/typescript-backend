@@ -40,7 +40,7 @@ const config: Config = {
   cors: {
     origins: process.env.CORS_ORIGINS 
       ? process.env.CORS_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://localhost:8080', 'https://innovax-ui.vercel.app'],
+      : ['http://localhost:3000', 'http://localhost:8080', 'https://fundhubui-v1.vercel.app'],
   },
 
   // Rate Limiting
