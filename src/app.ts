@@ -23,9 +23,6 @@ import './models';
 
 const app: Application = express();
 
-// Security middleware
-app.use(helmet());
-
 // Compression middleware
 app.use(compression());
 
@@ -55,6 +52,8 @@ app.use(
   })
 );
 
+// Security middleware
+app.use(helmet());
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
@@ -144,7 +143,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API Routes
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/campaigns', campaignRoutes);
