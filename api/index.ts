@@ -1,34 +1,6 @@
 // Vercel serverless function entry point for TypeScript backend
 import type { Request, Response } from 'express';
 import app from '../src/app';
-import cors from 'cors';
-
-// ✅ Configure CORS for your frontend and local dev
-const allowedOrigins = [
-  'https://fundhubui-v1.vercel.app',
-  'http://localhost:5173', // optional for local testing
-];
-
-// Apply CORS middleware before anything else
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like curl or Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `The CORS policy does not allow access from origin: ${origin}`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
-
-// Handle preflight requests globally
-app.options('*', cors());
 
 // Handle serverless function lifecycle
 let isWarm = false;
