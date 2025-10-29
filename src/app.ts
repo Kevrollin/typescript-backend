@@ -144,11 +144,11 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/auth', authRoutes);
-app.use('/api/projects', projectRoutes);
+app.use('/projects', projectRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/submissions', submissionRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/upload', uploadRoutes);
 
