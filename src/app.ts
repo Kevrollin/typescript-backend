@@ -144,7 +144,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/campaigns', campaignRoutes);
