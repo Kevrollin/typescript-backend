@@ -1,5 +1,5 @@
 // api/index.ts
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import serverless from 'serverless-http';
 import app from '../src/app';
 
@@ -22,26 +22,25 @@ export default async function (req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Remove global CORS headers here — let Express handle it
-  // Only handle OPTIONS quickly
- const allowedOrigins = [
-  'https://fundhubui-v1.vercel.app',
-  'http://localhost:5173'
-];
+  // Custom manual CORS handling (Vercel does not always use Express's CORS middleware for serverless)
+  const allowedOrigins = [
+    'https://fundhubui-v1.vercel.app',
+    'http://localhost:5173',
+    process.env.CORS_ORIGINS?.split(',').map(v => v.trim()).filter(Boolean) ?? []
+  ].flat();
 
-const origin = req.headers.origin;
-if (allowedOrigins.includes(origin || '')) {
-  res.setHeader('Access-Control-Allow-Origin', origin!);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-}
-res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
 
-if (req.method === 'OPTIONS') {
-  return res.status(200).end();
-}
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-
-  // Delegate everything else to Express via serverless-http
+  // Delegate remaining requests to Express (serverless)
   return handler(req, res);
 };
