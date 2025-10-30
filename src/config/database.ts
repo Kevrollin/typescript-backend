@@ -2,87 +2,86 @@ import { Sequelize } from 'sequelize';
 import pg from 'pg';
 import config from './index';
 
-// Create Sequelize instance with Vercel-optimized configuration
-const sequelize = new Sequelize(config.database.url, {
-  logging: config.database.logging ? console.log : false,
-  pool: {
-    min: 0, // Minimum connections for serverless
-    max: 1, // Maximum connections for serverless
-    acquire: 30000,
-    idle: 10000,
-  },
-  dialect: 'postgres',
-  dialectModule: pg, // Explicitly specify pg module
-  dialectOptions: {
-    ssl: config.database.url.includes('neon.tech') || config.app.env === 'production' ? {
-      require: true,
-      rejectUnauthorized: false
-    } : false,
-    // Vercel-specific options
-    keepAlive: true,
-    keepAliveInitialDelayMillis: 0,
-  },
-  define: {
-    timestamps: true,
-    underscored: true,
-    freezeTableName: true,
-  },
-  // Vercel serverless optimization
-  retry: {
-    match: [
-      /ETIMEDOUT/,
-      /EHOSTUNREACH/,
-      /ECONNRESET/,
-      /ECONNREFUSED/,
-      /ETIMEDOUT/,
-      /ESOCKETTIMEDOUT/,
-      /EHOSTUNREACH/,
-      /EPIPE/,
-      /EAI_AGAIN/,
-      /SequelizeConnectionError/,
-      /SequelizeConnectionRefusedError/,
-      /SequelizeHostNotFoundError/,
-      /SequelizeHostNotReachableError/,
-      /SequelizeInvalidConnectionError/,
-      /SequelizeConnectionTimedOutError/
-    ],
-    max: 3
-  },
-});
+let sequelize: Sequelize | null = null; // prevent multiple instances
 
-// Test database connection
+export const getSequelize = (): Sequelize => {
+  if (!sequelize) {
+    console.log('⚙️ Initializing new Sequelize instance...');
+
+    // Use pooled Neon connection if available
+    const dbUrl =
+      config.database.url.includes('-pooler.')
+        ? config.database.url
+        : config.database.url.replace('.neon.tech', '-pooler.neon.tech');
+
+    sequelize = new Sequelize(dbUrl, {
+      dialect: 'postgres',
+      dialectModule: pg,
+      logging: config.database.logging ? console.log : false,
+      pool: {
+        max: 3,
+        min: 0,
+        idle: 10000,
+        acquire: 30000,
+      },
+      dialectOptions: {
+        ssl:
+          config.database.url.includes('neon.tech') ||
+          config.app.env === 'production'
+            ? { require: true, rejectUnauthorized: false }
+            : false,
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 0,
+      },
+      define: {
+        timestamps: true,
+        underscored: true,
+        freezeTableName: true,
+      },
+      retry: {
+        match: [
+          /ETIMEDOUT/,
+          /EHOSTUNREACH/,
+          /ECONNRESET/,
+          /ECONNREFUSED/,
+          /ESOCKETTIMEDOUT/,
+          /EPIPE/,
+          /EAI_AGAIN/,
+          /SequelizeConnection/,
+        ],
+        max: 2,
+      },
+    });
+  }
+
+  return sequelize;
+};
+
+// ✅ test connection safely
 export const testConnection = async (): Promise<boolean> => {
   try {
+    const sequelize = getSequelize();
     await sequelize.authenticate();
-    console.log('Database connection established successfully.');
+    console.log('✅ Database connected successfully.');
     return true;
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error('❌ Database connection failed:', error);
     return false;
   }
 };
 
-// Sync database (for development)
-export const syncDatabase = async (force: boolean = false): Promise<void> => {
-  try {
-    await sequelize.sync({ force });
-    console.log('Database synchronized successfully.');
-  } catch (error) {
-    console.error('Database synchronization failed:', error);
-    throw error;
-  }
+// Optional: sync (for dev)
+export const syncDatabase = async (force = false): Promise<void> => {
+  const sequelize = getSequelize();
+  await sequelize.sync({ force });
+  console.log('✅ Database synced successfully.');
 };
 
-// Close database connection
+// Optional: close connection
 export const closeConnection = async (): Promise<void> => {
-  try {
-    await sequelize.close();
-    console.log('Database connection closed.');
-  } catch (error) {
-    console.error('Error closing database connection:', error);
-    throw error;
-  }
+  const sequelize = getSequelize();
+  await sequelize.close();
+  console.log('🛑 Database connection closed.');
 };
 
-export { sequelize };
-export default sequelize;
+export default getSequelize();
