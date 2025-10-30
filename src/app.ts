@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // CORS: allow frontend + preflight
 const allowedOrigins = [
   'https://fundhubui-v1.vercel.app',
-  'http://localhost:5173'
+  'http://localhost:8080'
 ];
 
 app.use(
