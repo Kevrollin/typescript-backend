@@ -22,6 +22,8 @@ import './models';
 
 const app: Application = express();
 
+app.set('trust proxy', 1);
+
 // Compression & Security
 app.use(compression());
 app.use(helmet());
