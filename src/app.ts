@@ -69,12 +69,12 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Test endpoint
-app.get('/test', (req: Request, res: Response) => {
-  res.json({ success: true, message: 'Test endpoint working' });
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: 'Test endpoint working ✅' });
 });
 
 // Health check
-app.get('/health', async (req: Request, res: Response) => {
+app.get('/api/health', async (req, res) => {
   try {
     const dbConnected = await testConnection();
     res.json({
