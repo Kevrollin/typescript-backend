@@ -87,15 +87,15 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 });
 
-// ✅ API Routes (no /api prefix in Express)
-app.use('/auth', authRoutes);
-app.use('/projects', projectRoutes);
-app.use('/donations', donationRoutes);
-app.use('/campaigns', campaignRoutes);
-app.use('/submissions', submissionRoutes);
-app.use('/admin', adminRoutes);
-app.use('/students', studentRoutes);
-app.use('/upload', uploadRoutes);
+// ✅ API Routes with /api prefix
+app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
